@@ -4,7 +4,10 @@ from pathlib import Path
 from datetime import datetime
 import csv
 import json
+from dotenv import load_dotenv
+load_dotenv()
 
+ 
 if not Path('logs').is_dir():
     Path.mkdir('logs', exist_ok=True, parents=True)
 
@@ -16,7 +19,7 @@ client = OpenAI(
     base_url="https://api.xiaomimimo.com/v1"
 )
 
-with open('prompt_struct.json', encoding='utf-8') as file:
+with open('output_struct.json', encoding='utf-8') as file:
     structure = file.read()
 
 output = {"answers": []}
