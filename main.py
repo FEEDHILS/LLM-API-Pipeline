@@ -1,13 +1,14 @@
 from openai import OpenAI
-import os
+import csv, json
+from config import *
+from os import environ
 from pathlib import Path
 from datetime import datetime
-import csv
-import json
+
 from dotenv import load_dotenv
 load_dotenv()
 
- 
+
 if not Path('logs').is_dir():
     Path.mkdir('logs', exist_ok=True, parents=True)
 
@@ -15,21 +16,21 @@ logs = sorted([i.name for i in Path('logs').glob('*.log')], key=lambda x: int(x[
 ind = int(logs[-1][:-4])+1 if logs != [] else 0
 
 client = OpenAI(
-    api_key=os.environ.get("API_KEY"),
-    base_url="https://api.xiaomimimo.com/v1"
+    api_key=environ.get('API_KEY'),
+    base_url=environ.get('API_URL')
 )
 
 with open('output_struct.json', encoding='utf-8') as file:
     structure = file.read()
 
-output = {"answers": []}
+output = {'answers': []}
 def pipe_to_model(input : str):
     with open(f'logs/{ind}.log', 'a', encoding='utf-8') as log:
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         log.write(f'{time} > {input}\n')
 
         response = client.chat.completions.create(
-            model="mimo-v2-flash",
+            model=model_type,
             messages=[
                 {
                 'role': 'system',
@@ -40,7 +41,7 @@ def pipe_to_model(input : str):
                 'content': input
                 }
             ],
-            max_completion_tokens=1024,
+            max_completion_tokens=max_tokens,
             response_format={ "type": "json_object" }
         )
 
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     with open('input.csv', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            pipe_to_model(row['review'])
+            pipe_to_model(row[input_row])
     
     json.dump(output, open('output.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
 
